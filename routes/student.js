@@ -39,6 +39,6 @@ router.post('/feedback', provideFeedback);
 // router.get('/search', searchIssues);
 router.post('/issues', upload.single('image'), addIssues);
 router.get('/batches', getBatches);
-router.get('/mess', getStudentByMess);
+router.get('/mess/:messNo', getStudentByMess);
 
 module.exports = router;

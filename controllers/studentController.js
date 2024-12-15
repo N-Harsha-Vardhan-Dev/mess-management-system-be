@@ -84,7 +84,7 @@ const getBatches = (req, res, next) => {
 };
 
 const getStudentByMess = (req, res, next) => {
-  const { messNo } = req.body;  // Extract messNo from URL parameter
+  const { messNo } = req.params;  // Extract messNo from URL parameter
 
   // Validate if messNo is provided
   if (!messNo) {
