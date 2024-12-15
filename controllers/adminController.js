@@ -77,10 +77,7 @@ const addCoordinator = (req, res, next) => {
         }
       );
     }
-);
-
-// module.exports = { addCoordinator };
-  
+  );
 };
 
 const addMessRepresntative = (req, res, next) => {
@@ -145,7 +142,237 @@ const addMess = (req, res, next) => {
   });
 };
 
-module.exports = { addMess , addCoordinator, addMessRepresntative};
-// module.exports = { addMessRepresntative };
-// module.exports = { registerMR, createRoles, approveMR, addCoordinator };
+const getMrByMess = (req, res, next) => {
+  const { messNo } = req.params;  // Extract messNo from URL parameter
+
+  // Validate if messNo is provided
+  if (!messNo) {
+    return res.status(400).json({
+      success: false,
+      message: 'messNo is required',
+    });
+  }
+
+  // Query to get students from the specified messNo
+  const query = 'SELECT email, name FROM MessRepresentative WHERE messNo = ?';
+
+  pool.query(query, [messNo], (err, results) => {
+    if (err) return next(err);
+
+    if (results.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No Mess Representatives found for mess ${messNo}`,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: `Mess Representative for messNo ${messNo} fetched successfully`,
+      students: results, // Array of mr objects
+    });
+  });
+};
+
+const updateMessNoByBatch = (req, res, next) => {
+  const { batch, messNo } = req.body;  // Extract batch and mess from the request body
+
+  // Validate if batch and mess are provided
+  if (!batch || !messNo) {
+    return res.status(400).json({
+      success: false,
+      message: 'Both batch and mess are required',
+    });
+  }
+
+  // Query to update mess for students in the specified batch
+  const query = 'UPDATE Student SET messNo = ? WHERE batch = ?';
+
+  pool.query(query, [messNo, batch], (err, results) => {
+    if (err) return next(err);
+
+    // Check if any rows were affected (if no students with the batch were found)
+    if (results.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No students found for batch ${batch}`,
+      });
+    }
+
+    // If update is successful, respond with success
+    res.json({
+      success: true,
+      message: `mess updated successfully for batch ${batch}`,
+    });
+  });
+};
+
+
+const updateMessNoByEmail = (req, res, next) => {
+  const { email, messNo } = req.body;
+
+  if (!email || messNo === undefined) {
+    return res.status(400).json({
+      success: false,
+      message: "Email and messNo are required",
+    });
+  }
+
+  const query = "UPDATE Student SET messNo = ? WHERE email = ?";
+
+  pool.query(query, [messNo, email], (err, results) => {
+    if (err) return next(err);
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found with the provided email",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "messNo updated successfully",
+    });
+  });
+};
+
+const removeMessNoByEmail = (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({
+      success: false,
+      message: "Email is required",
+    });
+  }
+
+  const query = "UPDATE Student SET messNo = NULL WHERE email = ?";
+
+  pool.query(query, [email], (err, results) => {
+    if (err) return next(err);
+
+    if (results.affectedRows === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Student not found with the provided email",
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "messNo removed successfully",
+    });
+  });
+};
+
+const addUpvote = (req, res, next) => {
+  const { issueId, userId } = req.body;
+
+  // Validate required fields
+  if (!issueId || !userId) {
+    return res.status(400).json({ success: false, message: "issueId and userId are required" });
+  }
+
+  // Insert into the Upvote table
+  const query = 'INSERT INTO Upvote (issueId, userId) VALUES (?, ?)';
+  pool.query(query, [issueId, userId], (err, results) => {
+    if (err) {
+      if (err.code === 'ER_DUP_ENTRY') {
+        return res.status(400).json({ success: false, message: 'User has already upvoted this issue' });
+      }
+      return next(err);
+    }
+
+    res.json({
+      success: true,
+      message: 'Upvote added successfully',
+    });
+  });
+};
+
+const inspectionbymess = (req, res, next) => {
+  const { messNo } = req.params; // Get messNo from query parameters
+
+  // Ensure messNo is provided
+  if (!messNo) {
+    return res.status(400).json({ success: false, message: 'Mess number is required' });
+  }
+
+  // Query the Inspection table for records matching the messNo
+  pool.query(
+    'SELECT * FROM Inspection WHERE messNo = ?',
+    [messNo],
+    (err, results) => {
+      if (err) {
+        return next(err); // Pass the error to the next middleware
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ success: false, message: 'No inspections found for the specified mess' });
+      }
+
+      return res.json({ success: true, inspections: results });
+    }
+  );
+};
+
+const feedbackbymess = (req, res, next) => {
+  const { messNo } = req.params; // Get messNo from query parameters
+
+  // Ensure messNo is provided
+  if (!messNo) {
+    return res.status(400).json({ success: false, message: 'Mess number is required' });
+  }
+
+  // Query the Issues table for records matching the messNo
+  pool.query(
+    'SELECT * FROM Feedback where messNo = ? ',
+    [messNo],
+    (err, results) => {
+      if (err) {
+        return next(err); // Pass the error to the next middleware
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ success: false, message: 'No feedback found for the specified mess' });
+      }
+
+      return res.json({ success: true, feedback: results });
+    }
+  );
+};
+
+const issuesbymess = (req, res, next) => {
+  const { messNo } = req.params; // Get messNo from query parameters
+
+  // Ensure messNo is provided
+  if (!messNo) {
+    return res.status(400).json({ success: false, message: 'Mess number is required' });
+  }
+
+  // Query the Issues table for records matching the messNo
+  pool.query(
+    'SELECT * FROM Issues where messNo = ? ',
+    [messNo],
+    (err, results) => {
+      if (err) {
+        return next(err); // Pass the error to the next middleware
+      }
+
+      if (results.length === 0) {
+        return res.status(404).json({ success: false, message: 'No Issues found for the specified mess' });
+      }
+
+      return res.json({ success: true, issues: results });
+    }
+  );
+};
+
+
+
+
+module.exports = { addMess , addCoordinator, addMessRepresntative,getMrByMess, updateMessNoByBatch,
+  updateMessNoByEmail, removeMessNoByEmail, addUpvote,
+  inspectionbymess, feedbackbymess, issuesbymess};
 

@@ -58,7 +58,67 @@ const addIssues = (req, res, next) => {
   });
 };
 
-module.exports = { provideFeedback, addIssues };
+const getBatches = (req, res, next) => {
+  // Query to get distinct batches
+  const query = 'SELECT DISTINCT batch FROM Student';
+
+  pool.query(query, (err, results) => {
+    if (err) return next(err);
+
+    // If no batches found
+    if (results.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'No batches found',
+      });
+    }
+
+    // Return distinct batches
+    const batches = results.map((row) => row.batch);
+    res.json({
+      success: true,
+      message: 'Distinct batches fetched successfully',
+      batches: batches, // An array of distinct batches
+    });
+  });
+};
+
+const getStudentByMess = (req, res, next) => {
+  const { messNo } = req.body;  // Extract messNo from URL parameter
+
+  // Validate if messNo is provided
+  if (!messNo) {
+    return res.status(400).json({
+      success: false,
+      message: 'messNo is required',
+    });
+  }
+
+  // Query to get students from the specified messNo
+  const query = 'SELECT email, name FROM Student WHERE messNo = ?';
+
+  pool.query(query, [messNo], (err, results) => {
+    if (err) return next(err);
+
+    // If no students found for the given messNo
+    if (results.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: `No students found for messNo ${messNo}`,
+      });
+    }
+
+    // Return student data for the specified messNo
+    res.json({
+      success: true,
+      message: `Students for messNo ${messNo} fetched successfully`,
+      students: results, // Array of student objects
+    });
+  });
+};
+
+
+module.exports = { provideFeedback, addIssues , getBatches, getStudentByMess};
 
 // Implement similar logic for other student actions: reportIssue, trackStatus, viewHistory, searchIssues
 

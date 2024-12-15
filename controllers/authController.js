@@ -15,25 +15,57 @@ const login = (req, res, next) => {
   );
 };
 
+// const register = (req, res, next) => {
+//   const {name,  email, password, role } = req.body;
+//   pool.query(
+//     'INSERT INTO User (email, password, role) VALUES (?, ?, ?)',
+//     [email, password, role],
+//     (err, results) => {
+//       if (err) return next(err);
+//       const userId = results.insertId; // Get the ID of the newly inserted user
+//       pool.query(
+//         'INSERT INTO Student (userId, email, name, batch, messNo) VALUES (?, ?, ?, ?, ?)',
+//         [userId, email, name],
+//         (err, results) => {
+//           if (err) return next(err);
+//           const studentId = results.insertId; // Get the ID of the newly inserted student
+//           res.json({ success: true, message: 'Registration successful as Student', userid: userId , studentid : studentId});
+//         }
+//       );
+//       // res.json({ success: true, message: 'Registration successful', userid: userId });
+//       //may add logic to delete if student already exists
+//     }
+//   );
+// };
+
 const register = (req, res, next) => {
-  const {name,  email, password, role } = req.body;
+  const { name, email, password, role, messNo } = req.body;
+
+  // Extract batch from email
+  const batchMatch = email.match(/^r(\d{2})/);  // Match the first two digits after 'r'
+  const batch = batchMatch ? `r${batchMatch[1]}` : null;
+
+  if (!batch) {
+    return res.status(400).json({ success: false, message: 'Invalid email format for batch extraction' });
+  }
+
   pool.query(
     'INSERT INTO User (email, password, role) VALUES (?, ?, ?)',
     [email, password, role],
     (err, results) => {
       if (err) return next(err);
+      
       const userId = results.insertId; // Get the ID of the newly inserted user
       pool.query(
-        'INSERT INTO Student (userId, email, name) VALUES (?, ?, ?)',
-        [userId, email, name],
+        'INSERT INTO Student (userId, email, name, batch, messNo) VALUES (?, ?, ?, ?, ?)',
+        [userId, email, name, batch, messNo],
         (err, results) => {
           if (err) return next(err);
+          
           const studentId = results.insertId; // Get the ID of the newly inserted student
-          res.json({ success: true, message: 'Registration successful as Student', userid: userId , studentid : studentId});
+          res.json({ success: true, message: 'Registration successful as Student', userid: userId, studentid: studentId });
         }
       );
-      // res.json({ success: true, message: 'Registration successful', userid: userId });
-      //may add logic to delete if student already exists
     }
   );
 };

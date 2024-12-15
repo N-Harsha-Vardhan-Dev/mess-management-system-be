@@ -143,7 +143,7 @@ const getIssuesByUserId = (req, res, next) => {
 };
 
 const getInspectionByDate = (req, res, next) => {
-  const { inspectionDate } = req.body;
+  const { inspectionDate } = req.params;
 
   // SQL query to get inspections for the given date
   const query = 'SELECT * FROM Inspection WHERE DATE(InspectionDate) = ?';

@@ -18,7 +18,7 @@ if (!fs.existsSync(uploadDir)) {
 //   viewHistory,
 //   searchIssues,
 // } = require('../controllers/studentController');
-const {provideFeedback,  addIssues } = require('../controllers/studentController');
+const {provideFeedback,  addIssues, getBatches, getStudentByMess } = require('../controllers/studentController');
 
 const router = express.Router();
 
@@ -38,5 +38,7 @@ router.post('/feedback', provideFeedback);
 // router.get('/history', viewHistory);
 // router.get('/search', searchIssues);
 router.post('/issues', upload.single('image'), addIssues);
+router.get('/batches', getBatches);
+router.get('/mess', getStudentByMess);
 
 module.exports = router;

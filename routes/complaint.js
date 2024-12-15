@@ -16,7 +16,7 @@ router.get('/issues', getIssues);
 router.put('/issues/count/:issueId', updateIssueCount);
 router.put('/issues/status/:issueId', updateIssueStatus);
 router.get('/issues/user/:userId', getIssuesByUserId);
-router.get('/inspection/date', getInspectionByDate);
+router.get('/inspection/:inspectionDate', getInspectionByDate);
 router.get('/inspection/dates', getInspectionDates);
 
 module.exports = router;
