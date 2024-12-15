@@ -23,7 +23,7 @@ connectToDB();
 
 // Routes
 app.get('/',(req , res)=>{
-  res.send("Welcome to My World");
+  res.send("Welcome to My World. Backend is successfully deployed in render... But need to connect with frontend");
 })
 app.use('/auth', authRouter);
 app.use('/student', studentRouter);
